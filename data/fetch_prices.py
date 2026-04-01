@@ -44,18 +44,28 @@ def fetch_p2p(trade_type, rows=5):
     }
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     }
     resp = requests.post(P2P_URL, json=payload, headers=headers, timeout=15)
+    print(f"  P2P {trade_type} status: {resp.status_code}")
+    if resp.status_code != 200:
+        print(f"  P2P {trade_type} response: {resp.text[:500]}")
     resp.raise_for_status()
     data = resp.json()
-    return [float(ad["adv"]["price"]) for ad in data["data"]]
+    if not data.get("data"):
+        raise ValueError(f"P2P {trade_type} returned empty data: {data}")
+    prices = [float(ad["adv"]["price"]) for ad in data["data"]]
+    print(f"  P2P {trade_type} prices: {prices}")
+    return prices
 
 
 def fetch_spot(symbol):
     resp = requests.get(SPOT_URL, params={"symbol": symbol}, timeout=10)
+    print(f"  Spot {symbol} status: {resp.status_code}")
     resp.raise_for_status()
-    return float(resp.json()["price"])
+    price = float(resp.json()["price"])
+    print(f"  Spot {symbol} price: {price}")
+    return price
 
 
 def main():

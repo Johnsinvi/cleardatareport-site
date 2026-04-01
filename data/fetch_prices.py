@@ -4,8 +4,8 @@ import os
 from datetime import datetime, timezone
 
 
-P2P_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
-SPOT_URL = "https://api.binance.com/api/v3/ticker/price"
+P2P_URL    = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
+COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
 CSV_PATH = os.path.join(os.path.dirname(__file__), "prices.csv")
 
 FIELDNAMES = [
@@ -59,13 +59,20 @@ def fetch_p2p(trade_type, rows=5):
     return prices
 
 
-def fetch_spot(symbol):
-    resp = requests.get(SPOT_URL, params={"symbol": symbol}, timeout=10)
-    print(f"  Spot {symbol} status: {resp.status_code}")
+def fetch_spot_prices():
+    """Fetch BTC and ETH prices in USD from CoinGecko (no geo-restrictions)."""
+    resp = requests.get(
+        COINGECKO_URL,
+        params={"ids": "bitcoin,ethereum", "vs_currencies": "usd"},
+        timeout=15,
+    )
+    print(f"  CoinGecko status: {resp.status_code}")
     resp.raise_for_status()
-    price = float(resp.json()["price"])
-    print(f"  Spot {symbol} price: {price}")
-    return price
+    data = resp.json()
+    btc = float(data["bitcoin"]["usd"])
+    eth = float(data["ethereum"]["usd"])
+    print(f"  BTC: {btc}  ETH: {eth}")
+    return btc, eth
 
 
 def main():
@@ -81,9 +88,8 @@ def main():
     avg_sell  = round(sum(buy_prices)  / len(buy_prices),  4)
     spread    = round(best_buy - best_sell, 4)
 
-    # Spot prices
-    btc_usdt = fetch_spot("BTCUSDT")
-    eth_usdt = fetch_spot("ETHUSDT")
+    # Spot prices (via CoinGecko — no geo-restrictions)
+    btc_usdt, eth_usdt = fetch_spot_prices()
 
     row = {
         "timestamp":        timestamp,

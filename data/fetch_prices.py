@@ -17,7 +17,7 @@ FIELDNAMES = [
 ]
 
 
-def fetch_p2p(trade_type, rows=5):
+def fetch_p2p(trade_type, rows=20):
     """
     Fetch top P2P ads for USDT/BOB.
     trade_type BUY  = merchants buying  USDT (user sells USDT, gets BOB)
@@ -76,16 +76,16 @@ def main():
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
     # P2P BOB/USDT
-    buy_prices  = fetch_p2p("BUY")   # merchants buying  USDT → price = BOB per USDT they pay
-    sell_prices = fetch_p2p("SELL")  # merchants selling USDT → price = BOB per USDT they ask
+    buy_side  = fetch_p2p("BUY")   # BUY type ads (merchants buying from you = you're selling)
+    sell_side = fetch_p2p("SELL")  # SELL type ads (merchants selling to you = you're buying)
 
-    # Sort to get 4th lowest/highest
-    sell_prices_sorted = sorted(sell_prices)  # ascending: cheapest first
-    buy_prices_sorted = sorted(buy_prices, reverse=True)  # descending: highest first
+    # Get 4th item from the lists (Binance returns them sorted by best offers)
+    # NOTE: API parameter names can be counterintuitive
+    # buy_side ("BUY" param) = merchants bidding to buy from you
+    # sell_side ("SELL" param) = merchants asking to sell to you
 
-    # 4th lowest buy price (4th cheapest ask), 4th highest sell price (4th highest bid)
-    p2p_buy  = round(sell_prices_sorted[3], 4)  # price you pay to BUY  USDT with BOB
-    p2p_sell = round(buy_prices_sorted[3], 4)   # price you get to SELL USDT for BOB
+    p2p_buy  = round(buy_side[3], 4)   # 4th price point on the buy side (what you pay)
+    p2p_sell = round(sell_side[3], 4)  # 4th price point on the sell side (what you get)
 
     # Spot prices (via CoinGecko — no geo-restrictions)
     btc_usdt, eth_usdt = fetch_spot_prices()

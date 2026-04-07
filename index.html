@@ -4,7 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clear Data Report</title>
+<title>Clear Data Report - USDT/BOB P2P Tracker</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
 <style>
 
@@ -58,6 +60,11 @@ nav {
   color: white;
 }
 
+.nav-links a.active {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
 /* ── Hero ── */
 .hero {
   background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
@@ -109,71 +116,98 @@ nav {
   margin-bottom: 40px;
 }
 
-/* ── Dashboard card ── */
-.dashboard-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  overflow: hidden;
+/* ── Price cards ── */
+.price-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
   margin-bottom: 48px;
 }
 
-.card-header {
-  padding: 24px 28px;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.price-card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.card-header-text h2 {
-  font-size: 20px;
+.price-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.price-card.buy {
+  border-top: 4px solid #10b981;
+}
+
+.price-card.sell {
+  border-top: 4px solid #38bdf8;
+}
+
+.price-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.price-value {
+  font-size: 48px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.price-card.buy .price-value {
+  color: #10b981;
+}
+
+.price-card.sell .price-value {
+  color: #0369a1;
+}
+
+.price-currency {
+  font-size: 18px;
+  color: #94a3b8;
+  margin-left: 8px;
+}
+
+.price-updated {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ── Chart card ── */
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  margin-bottom: 48px;
+}
+
+.chart-title {
+  font-size: 18px;
   font-weight: 700;
   color: #0f172a;
+  margin-bottom: 24px;
 }
 
-.card-header-text p {
-  font-size: 14px;
-  color: #64748b;
-  margin-top: 5px;
-  line-height: 1.5;
+.chart-container {
+  position: relative;
+  height: 400px;
 }
 
-.tag {
-  background: #e0f2fe;
-  color: #0369a1;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.dashboard-embed iframe {
-  width: 100%;
-  height: 650px;
-  border: none;
-  display: block;
-}
-
-.insights {
-  padding: 24px 28px;
-  border-top: 1px solid #e2e8f0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.insight-item {
-  background: #f8fafc;
-  border-left: 3px solid #38bdf8;
-  padding: 12px 16px;
-  border-radius: 0 6px 6px 0;
-  font-size: 14px;
-  color: #334155;
-  line-height: 1.5;
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
 }
 
 /* ── Footer ── */
@@ -196,8 +230,9 @@ footer strong {
   .hero { padding: 60px 20px; }
   .hero h1 { font-size: 32px; }
   .container { padding: 40px 20px; }
-  .card-header { flex-direction: column; }
-  .insights { grid-template-columns: 1fr; }
+  .price-cards { grid-template-columns: 1fr; }
+  .price-value { font-size: 36px; }
+  .chart-container { height: 300px; }
 }
 
 </style>
@@ -207,49 +242,56 @@ footer strong {
 
 <!-- Nav -->
 <nav>
-  <a class="nav-brand" href="#">Clear<span>Data</span>Report</a>
+  <a class="nav-brand" href="index.html">Clear<span>Data</span>Report</a>
   <div class="nav-links">
-    <a href="#dashboards">Dashboards</a>
+    <a href="index.html" class="active">Home</a>
+    <a href="powerbi.html">Power BI</a>
   </div>
 </nav>
 
 <!-- Hero -->
 <div class="hero">
-  <h1>Data That <span>Speaks</span> for Itself</h1>
-  <p>A portfolio of interactive dashboards built with Power BI and Excel — turning raw data into clear business insights.</p>
+  <h1>USDT / BOB <span>P2P Tracker</span></h1>
+  <p>Real-time 4th-level pricing from Binance P2P market with historical trends — updated every 4 hours.</p>
 </div>
 
-<!-- Dashboards -->
-<div class="container" id="dashboards">
+<!-- Content -->
+<div class="container">
 
-  <div class="section-title">Dashboards</div>
+  <div class="section-title">Live Prices</div>
   <div class="section-line"></div>
 
-  <!-- Dashboard 1 -->
-  <div class="dashboard-card">
-
-    <div class="card-header">
-      <div class="card-header-text">
-        <h2>USDT / BOB Crypto Market Dashboard</h2>
-        <p>Live Binance P2P market rates for USDT in Bolivianos (BOB), alongside BTC and ETH spot prices — updated hourly.</p>
+  <!-- Price Cards -->
+  <div class="price-cards">
+    <div class="price-card buy">
+      <div class="price-label">Buy Price</div>
+      <div>
+        <span class="price-value" id="buyPrice">—</span>
+        <span class="price-currency">BOB</span>
       </div>
-      <span class="tag">Power BI</span>
+      <div class="price-updated" id="buyUpdated"></div>
     </div>
 
-    <div class="dashboard-embed">
-      <iframe
-        title="test"
-        src="https://app.powerbi.com/view?r=eyJrIjoiZjZlZGE0MDktOTk0YS00ZWViLWJlMTItOWNhODViYTMyM2NiIiwidCI6IjVkNjE0ZDU2LWJiYjItNGZlNC1iOTI2LWFlNTQzMjdkYjcyMiIsImMiOjR9"
-        allowfullscreen>
-      </iframe>
+    <div class="price-card sell">
+      <div class="price-label">Sell Price</div>
+      <div>
+        <span class="price-value" id="sellPrice">—</span>
+        <span class="price-currency">BOB</span>
+      </div>
+      <div class="price-updated" id="sellUpdated"></div>
     </div>
+  </div>
 
-    <div class="insights">
-      <div class="insight-item">P2P buy/sell spread reflects real market liquidity in Bolivia.</div>
-      <div class="insight-item">BTC and ETH prices sourced from CoinGecko, refreshed hourly.</div>
-      <div class="insight-item">Data pipeline runs automatically via GitHub Actions.</div>
+  <div class="section-title">Historical Trend</div>
+  <div class="section-line"></div>
+
+  <!-- Chart -->
+  <div class="chart-card">
+    <div class="chart-title">Price History</div>
+    <div class="chart-container">
+      <div class="loading" id="loadingMessage">Loading data...</div>
+      <canvas id="priceChart" style="display: none;"></canvas>
     </div>
-
   </div>
 
 </div>
@@ -258,6 +300,175 @@ footer strong {
 <footer>
   <strong>Clear Data Report</strong> · Data Analytics Portfolio
 </footer>
+
+<script>
+async function loadPriceData() {
+  try {
+    const response = await fetch('data/prices.csv');
+    const csvText = await response.text();
+    const rows = csvText.trim().split('\n');
+
+    if (rows.length < 2) {
+      document.getElementById('loadingMessage').textContent = 'No data available';
+      return;
+    }
+
+    // Parse CSV header
+    const headers = rows[0].split(',');
+    const timestampIdx = headers.indexOf('timestamp');
+    const buyIdx = headers.indexOf('p2p_buy_bob');
+    const sellIdx = headers.indexOf('p2p_sell_bob');
+
+    // Parse data rows
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+      const values = rows[i].split(',');
+
+      // Skip rows with missing price data
+      if (values[buyIdx] === '' || values[sellIdx] === '' || !values[buyIdx] || !values[sellIdx]) {
+        continue;
+      }
+
+      data.push({
+        timestamp: values[timestampIdx],
+        buy: parseFloat(values[buyIdx]),
+        sell: parseFloat(values[sellIdx])
+      });
+    }
+
+    if (data.length === 0) {
+      document.getElementById('loadingMessage').textContent = 'No complete price data available';
+      return;
+    }
+
+    // Display latest prices
+    const latest = data[data.length - 1];
+    document.getElementById('buyPrice').textContent = latest.buy.toFixed(2);
+    document.getElementById('sellPrice').textContent = latest.sell.toFixed(2);
+    document.getElementById('buyUpdated').textContent = `Last updated: ${latest.timestamp}`;
+    document.getElementById('sellUpdated').textContent = `Last updated: ${latest.timestamp}`;
+
+    // Prepare chart data
+    const labels = data.map(d => {
+      // Parse timestamp and extract date part
+      const date = new Date(d.timestamp);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    });
+
+    const buyPrices = data.map(d => d.buy);
+    const sellPrices = data.map(d => d.sell);
+
+    // Hide loading message and show chart
+    document.getElementById('loadingMessage').style.display = 'none';
+    document.getElementById('priceChart').style.display = 'block';
+
+    // Create chart
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Buy Price',
+            data: buyPrices,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 5
+          },
+          {
+            label: 'Sell Price',
+            data: sellPrices,
+            borderColor: '#0369a1',
+            backgroundColor: 'rgba(3, 105, 161, 0.05)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointRadius: 3,
+            pointBackgroundColor: '#0369a1',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointHoverRadius: 5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 14, weight: '600' },
+              color: '#0f172a',
+              padding: 16,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 12,
+            titleFont: { size: 14, weight: '600' },
+            bodyFont: { size: 13 },
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' BOB';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Price (BOB)'
+            },
+            ticks: {
+              color: '#64748b',
+              font: { size: 12 },
+              callback: function(value) {
+                return value.toFixed(2);
+              }
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)',
+              drawBorder: false
+            }
+          },
+          x: {
+            ticks: {
+              color: '#64748b',
+              font: { size: 12 }
+            },
+            grid: {
+              display: false,
+              drawBorder: false
+            }
+          }
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error loading price data:', error);
+    document.getElementById('loadingMessage').textContent = 'Error loading data. Please refresh the page.';
+  }
+}
+
+// Load data when page loads
+window.addEventListener('load', loadPriceData);
+</script>
 
 </body>
 </html>

@@ -10,11 +10,8 @@ CSV_PATH = os.path.join(os.path.dirname(__file__), "prices.csv")
 
 FIELDNAMES = [
     "timestamp",
-    "p2p_best_buy_bob",
-    "p2p_best_sell_bob",
-    "p2p_avg_buy_bob",
-    "p2p_avg_sell_bob",
-    "p2p_spread_bob",
+    "p2p_buy_bob",
+    "p2p_sell_bob",
     "btc_usdt",
     "eth_usdt",
 ]
@@ -82,24 +79,23 @@ def main():
     buy_prices  = fetch_p2p("BUY")   # merchants buying  USDT → price = BOB per USDT they pay
     sell_prices = fetch_p2p("SELL")  # merchants selling USDT → price = BOB per USDT they ask
 
-    best_buy  = min(sell_prices)   # cheapest ask  (best price to BUY  USDT with BOB)
-    best_sell = max(buy_prices)    # highest bid   (best price to SELL USDT for BOB)
-    avg_buy   = round(sum(sell_prices) / len(sell_prices), 4)
-    avg_sell  = round(sum(buy_prices)  / len(buy_prices),  4)
-    spread    = round(best_buy - best_sell, 4)
+    # Sort to get 4th lowest/highest
+    sell_prices_sorted = sorted(sell_prices)  # ascending: cheapest first
+    buy_prices_sorted = sorted(buy_prices, reverse=True)  # descending: highest first
+
+    # 4th lowest buy price (4th cheapest ask), 4th highest sell price (4th highest bid)
+    p2p_buy  = round(sell_prices_sorted[3], 4)  # price you pay to BUY  USDT with BOB
+    p2p_sell = round(buy_prices_sorted[3], 4)   # price you get to SELL USDT for BOB
 
     # Spot prices (via CoinGecko — no geo-restrictions)
     btc_usdt, eth_usdt = fetch_spot_prices()
 
     row = {
-        "timestamp":        timestamp,
-        "p2p_best_buy_bob":  best_buy,
-        "p2p_best_sell_bob": best_sell,
-        "p2p_avg_buy_bob":   avg_buy,
-        "p2p_avg_sell_bob":  avg_sell,
-        "p2p_spread_bob":    spread,
-        "btc_usdt":          btc_usdt,
-        "eth_usdt":          eth_usdt,
+        "timestamp":     timestamp,
+        "p2p_buy_bob":   p2p_buy,
+        "p2p_sell_bob":  p2p_sell,
+        "btc_usdt":      btc_usdt,
+        "eth_usdt":      eth_usdt,
     }
 
     file_exists = os.path.isfile(CSV_PATH)
@@ -111,7 +107,7 @@ def main():
 
     print(
         f"[{timestamp}] "
-        f"BOB buy:{best_buy} sell:{best_sell} spread:{spread} | "
+        f"BOB buy:{p2p_buy} sell:{p2p_sell} | "
         f"BTC:{btc_usdt} ETH:{eth_usdt}"
     )
 

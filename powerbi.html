@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power BI Dashboard - Clear Data Report</title>
+
+<style>
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f0f4f8;
+  color: #1a2332;
+}
+
+/* ── Nav ── */
+nav {
+  background: #0f172a;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.nav-brand {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+
+.nav-brand span {
+  color: #38bdf8;
+}
+
+.nav-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  margin-left: 28px;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: white;
+}
+
+.nav-links a.active {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  color: white;
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+
+.hero h1 span {
+  color: #38bdf8;
+}
+
+.hero p {
+  font-size: 16px;
+  color: #94a3b8;
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Main container ── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+/* ── Dashboard card ── */
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.card-header-text h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-header-text p {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.tag {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dashboard-embed iframe {
+  width: 100%;
+  height: 650px;
+  border: none;
+  display: block;
+}
+
+/* ── Footer ── */
+footer {
+  background: #0f172a;
+  color: #64748b;
+  text-align: center;
+  padding: 36px 40px;
+  font-size: 14px;
+}
+
+footer strong {
+  color: #38bdf8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 40px 20px; }
+  .hero h1 { font-size: 28px; }
+  .container { padding: 20px; }
+  .card-header { flex-direction: column; }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-brand" href="index.html">Clear<span>Data</span>Report</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="powerbi.html" class="active">Power BI</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Data <span>Dashboards</span></h1>
+  <p>Interactive Power BI dashboards for deeper insights into crypto markets and analytics.</p>
+</div>
+
+<!-- Dashboard -->
+<div class="container">
+
+  <!-- Dashboard 1 -->
+  <div class="dashboard-card">
+
+    <div class="card-header">
+      <div class="card-header-text">
+        <h2>USDT / BOB Crypto Market Dashboard</h2>
+        <p>Comprehensive Power BI analysis of P2P market dynamics, BTC and ETH spot prices, and market trends.</p>
+      </div>
+      <span class="tag">Power BI</span>
+    </div>
+
+    <div class="dashboard-embed">
+      <iframe
+        title="Crypto Market Dashboard"
+        src="https://app.powerbi.com/view?r=eyJrIjoiZjZlZGE0MDktOTk0YS00ZWViLWJlMTItOWNhODViYTMyM2NiIiwidCI6IjVkNjE0ZDU2LWJiYjItNGZlNC1iOTI2LWFlNTQzMjdkYjcyMiIsImMiOjR9"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <strong>Clear Data Report</strong> · Data Analytics Portfolio
+</footer>
+
+</body>
+</html>

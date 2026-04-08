@@ -531,7 +531,7 @@ async function loadPriceData() {
     }
 
     // Parse CSV header
-    const headers = rows[0].split(',');
+    const headers = rows[0].split(',').map(h => h.trim());
     const timestampIdx = headers.indexOf('timestamp');
     const buyIdx = headers.indexOf('p2p_buy_bob');
     const sellIdx = headers.indexOf('p2p_sell_bob');
@@ -539,20 +539,26 @@ async function loadPriceData() {
     // Parse data rows
     allData = [];
     for (let i = 1; i < rows.length; i++) {
-      const values = rows[i].split(',');
+      if (!rows[i].trim()) continue;
 
-      if (values[buyIdx] === '' || values[sellIdx] === '' || !values[buyIdx] || !values[sellIdx]) {
+      const values = rows[i].split(',').map(v => v.trim());
+
+      if (!values[buyIdx] || !values[sellIdx]) {
         continue;
       }
 
       const date = parseTimestamp(values[timestampIdx]);
       if (isNaN(date.getTime())) continue;
 
+      const buy = parseFloat(values[buyIdx]);
+      const sell = parseFloat(values[sellIdx]);
+      if (isNaN(buy) || isNaN(sell)) continue;
+
       allData.push({
         timestamp: values[timestampIdx],
         date: date,
-        buy: parseFloat(values[buyIdx]),
-        sell: parseFloat(values[sellIdx])
+        buy: buy,
+        sell: sell
       });
     }
 

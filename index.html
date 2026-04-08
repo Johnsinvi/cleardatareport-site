@@ -370,10 +370,31 @@ function parseTimestamp(tsStr) {
 }
 
 function aggregateDataByRange(data, range) {
-  if (range === 'all' || range === '12m') {
+  const now = new Date();
+  let cutoff;
+
+  // First filter by date range
+  switch(range) {
+    case '12m':
+      cutoff = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      break;
+    case '6m':
+      cutoff = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      break;
+    case '1m':
+      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+      break;
+    default:
+      cutoff = new Date(0);
+  }
+
+  const filtered = data.filter(d => d.date >= cutoff);
+
+  // Then aggregate
+  if (range === '12m') {
     // First value of each month
     const aggregated = {};
-    data.forEach(d => {
+    filtered.forEach(d => {
       const monthKey = `${d.date.getFullYear()}-${String(d.date.getMonth() + 1).padStart(2, '0')}`;
       if (!aggregated[monthKey]) {
         aggregated[monthKey] = d;
@@ -382,10 +403,10 @@ function aggregateDataByRange(data, range) {
     return Object.values(aggregated);
   }
 
-  if (range === '6m' || range === '3m') {
+  if (range === '6m') {
     // First value of each week
     const aggregated = {};
-    data.forEach(d => {
+    filtered.forEach(d => {
       const monday = new Date(d.date);
       const day = monday.getDay();
       const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
@@ -401,7 +422,7 @@ function aggregateDataByRange(data, range) {
   if (range === '1m') {
     // First value of each day
     const aggregated = {};
-    data.forEach(d => {
+    filtered.forEach(d => {
       const dayKey = d.date.toISOString().split('T')[0];
       if (!aggregated[dayKey]) {
         aggregated[dayKey] = d;
@@ -410,7 +431,7 @@ function aggregateDataByRange(data, range) {
     return Object.values(aggregated);
   }
 
-  return data;
+  return filtered;
 }
 
 function updateChart(filteredData) {

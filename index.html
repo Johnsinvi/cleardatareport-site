@@ -184,43 +184,6 @@ nav {
   border-top: 1px solid #e2e8f0;
 }
 
-/* ── Analytics cards ── */
-.analytics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 48px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  text-align: center;
-}
-
-.stat-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #0f172a;
-  margin-bottom: 4px;
-}
-
-.stat-unit {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
 /* ── Time range controls ── */
 .controls-bar {
   background: white;
@@ -307,7 +270,6 @@ footer strong {
   .price-cards { grid-template-columns: 1fr; }
   .price-value { font-size: 36px; }
   .chart-container { height: 300px; }
-  .analytics-grid { grid-template-columns: repeat(2, 1fr); }
   .controls-bar { flex-direction: column; align-items: stretch; }
   .time-btn { width: 100%; }
 }
@@ -335,7 +297,7 @@ footer strong {
 <!-- Content -->
 <div class="container">
 
-  <div class="section-title">Live Prices</div>
+  <div class="section-title">Today's Prices</div>
   <div class="section-line"></div>
 
   <!-- Price Cards -->
@@ -356,33 +318,6 @@ footer strong {
         <span class="price-currency">BOB</span>
       </div>
       <div class="price-updated" id="sellUpdated"></div>
-    </div>
-  </div>
-
-  <div class="section-title">Analytics</div>
-  <div class="section-line"></div>
-
-  <!-- Analytics Grid -->
-  <div class="analytics-grid">
-    <div class="stat-card">
-      <div class="stat-label">Average Buy</div>
-      <div class="stat-value" id="avgBuy">—</div>
-      <div class="stat-unit">BOB</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Average Sell</div>
-      <div class="stat-value" id="avgSell">—</div>
-      <div class="stat-unit">BOB</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Max Spread</div>
-      <div class="stat-value" id="maxSpread">—</div>
-      <div class="stat-unit">BOB</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Data Points</div>
-      <div class="stat-value" id="dataCount">—</div>
-      <div class="stat-unit">records</div>
     </div>
   </div>
 
@@ -434,25 +369,6 @@ function parseTimestamp(tsStr) {
   }
 
   return date;
-}
-
-function calculateAnalytics(data) {
-  if (data.length === 0) return {};
-
-  const buys = data.map(d => d.buy);
-  const sells = data.map(d => d.sell);
-
-  const avgBuy = buys.reduce((a, b) => a + b, 0) / buys.length;
-  const avgSell = sells.reduce((a, b) => a + b, 0) / sells.length;
-  const spreads = data.map(d => d.buy - d.sell).map(Math.abs);
-  const maxSpread = Math.max(...spreads);
-
-  return {
-    avgBuy: avgBuy.toFixed(4),
-    avgSell: avgSell.toFixed(4),
-    maxSpread: maxSpread.toFixed(4),
-    count: data.length
-  };
 }
 
 function filterDataByRange(data, range) {
@@ -601,13 +517,6 @@ function updateChart(filteredData) {
 
   document.getElementById('loadingMessage').style.display = 'none';
   document.getElementById('priceChart').style.display = 'block';
-
-  // Update analytics
-  const analytics = calculateAnalytics(filteredData);
-  document.getElementById('avgBuy').textContent = analytics.avgBuy;
-  document.getElementById('avgSell').textContent = analytics.avgSell;
-  document.getElementById('maxSpread').textContent = analytics.maxSpread;
-  document.getElementById('dataCount').textContent = analytics.count.toLocaleString();
 }
 
 async function loadPriceData() {

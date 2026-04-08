@@ -326,10 +326,8 @@ footer strong {
 
   <!-- Time Range Controls -->
   <div class="controls-bar">
-    <button class="time-btn active" data-range="all">All Time</button>
-    <button class="time-btn" data-range="12m">Last 12 Months</button>
+    <button class="time-btn active" data-range="12m">Last 12 Months</button>
     <button class="time-btn" data-range="6m">Last 6 Months</button>
-    <button class="time-btn" data-range="3m">Last 3 Months</button>
     <button class="time-btn" data-range="1m">Last Month</button>
   </div>
 
@@ -496,7 +494,7 @@ function updateChart(filteredData) {
             displayColors: true,
             callbacks: {
               label: function(context) {
-                return context.dataset.label + ': ' + context.parsed.y.toFixed(4) + ' BOB';
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' BOB';
               }
             }
           }
@@ -595,9 +593,9 @@ async function loadPriceData() {
     document.getElementById('buyUpdated').textContent = `Last updated: ${latest.timestamp}`;
     document.getElementById('sellUpdated').textContent = `Last updated: ${latest.timestamp}`;
 
-    // Initial chart with aggregated all-time data
-    const aggregatedAll = aggregateDataByRange(allData, 'all');
-    updateChart(aggregatedAll);
+    // Initial chart with aggregated 12-month data
+    const aggregated12m = aggregateDataByRange(allData, '12m');
+    updateChart(aggregated12m);
 
     // Setup time range buttons
     document.querySelectorAll('.time-btn').forEach(btn => {

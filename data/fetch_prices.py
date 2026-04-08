@@ -4,16 +4,13 @@ import os
 from datetime import datetime, timezone
 
 
-P2P_URL    = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
-COINGECKO_URL = "https://api.coingecko.com/api/v3/simple/price"
+P2P_URL = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search"
 CSV_PATH = os.path.join(os.path.dirname(__file__), "prices.csv")
 
 FIELDNAMES = [
     "timestamp",
-    "p2p_buy_bob",
     "p2p_sell_bob",
-    "btc_usdt",
-    "eth_usdt",
+    "p2p_buy_bob",
 ]
 
 
@@ -56,22 +53,6 @@ def fetch_p2p(trade_type, rows=20):
     return prices
 
 
-def fetch_spot_prices():
-    """Fetch BTC and ETH prices in USD from CoinGecko (no geo-restrictions)."""
-    resp = requests.get(
-        COINGECKO_URL,
-        params={"ids": "bitcoin,ethereum", "vs_currencies": "usd"},
-        timeout=15,
-    )
-    print(f"  CoinGecko status: {resp.status_code}")
-    resp.raise_for_status()
-    data = resp.json()
-    btc = float(data["bitcoin"]["usd"])
-    eth = float(data["ethereum"]["usd"])
-    print(f"  BTC: {btc}  ETH: {eth}")
-    return btc, eth
-
-
 def main():
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -84,18 +65,13 @@ def main():
     # buy_side ("BUY" param) = merchants bidding to buy from you
     # sell_side ("SELL" param) = merchants asking to sell to you
 
-    p2p_buy  = round(buy_side[3], 4)   # 4th price point on the buy side (what you pay)
     p2p_sell = round(sell_side[3], 4)  # 4th price point on the sell side (what you get)
-
-    # Spot prices (via CoinGecko — no geo-restrictions)
-    btc_usdt, eth_usdt = fetch_spot_prices()
+    p2p_buy  = round(buy_side[3], 4)   # 4th price point on the buy side (what you pay)
 
     row = {
         "timestamp":     timestamp,
-        "p2p_buy_bob":   p2p_buy,
         "p2p_sell_bob":  p2p_sell,
-        "btc_usdt":      btc_usdt,
-        "eth_usdt":      eth_usdt,
+        "p2p_buy_bob":   p2p_buy,
     }
 
     file_exists = os.path.isfile(CSV_PATH)
@@ -105,11 +81,7 @@ def main():
             writer.writeheader()
         writer.writerow(row)
 
-    print(
-        f"[{timestamp}] "
-        f"BOB buy:{p2p_buy} sell:{p2p_sell} | "
-        f"BTC:{btc_usdt} ETH:{eth_usdt}"
-    )
+    print(f"[{timestamp}] BOB sell:{p2p_sell} buy:{p2p_buy}")
 
 
 if __name__ == "__main__":

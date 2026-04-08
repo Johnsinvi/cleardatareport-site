@@ -7,6 +7,7 @@
 <title>Clear Data Report - USDT/BOB P2P Tracker</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@3.0.0/index.min.js"></script>
 
 <style>
 
@@ -183,6 +184,79 @@ nav {
   border-top: 1px solid #e2e8f0;
 }
 
+/* ── Analytics cards ── */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.stat-unit {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* ── Time range controls ── */
+.controls-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.time-btn {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-btn:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.time-btn.active {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: white;
+}
+
 /* ── Chart card ── */
 .chart-card {
   background: white;
@@ -233,6 +307,9 @@ footer strong {
   .price-cards { grid-template-columns: 1fr; }
   .price-value { font-size: 36px; }
   .chart-container { height: 300px; }
+  .analytics-grid { grid-template-columns: repeat(2, 1fr); }
+  .controls-bar { flex-direction: column; align-items: stretch; }
+  .time-btn { width: 100%; }
 }
 
 </style>
@@ -282,8 +359,44 @@ footer strong {
     </div>
   </div>
 
+  <div class="section-title">Analytics</div>
+  <div class="section-line"></div>
+
+  <!-- Analytics Grid -->
+  <div class="analytics-grid">
+    <div class="stat-card">
+      <div class="stat-label">Average Buy</div>
+      <div class="stat-value" id="avgBuy">—</div>
+      <div class="stat-unit">BOB</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Average Sell</div>
+      <div class="stat-value" id="avgSell">—</div>
+      <div class="stat-unit">BOB</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Max Spread</div>
+      <div class="stat-value" id="maxSpread">—</div>
+      <div class="stat-unit">BOB</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Data Points</div>
+      <div class="stat-value" id="dataCount">—</div>
+      <div class="stat-unit">records</div>
+    </div>
+  </div>
+
   <div class="section-title">Historical Trend</div>
   <div class="section-line"></div>
+
+  <!-- Time Range Controls -->
+  <div class="controls-bar">
+    <button class="time-btn active" data-range="all">All Time</button>
+    <button class="time-btn" data-range="12m">Last 12 Months</button>
+    <button class="time-btn" data-range="6m">Last 6 Months</button>
+    <button class="time-btn" data-range="3m">Last 3 Months</button>
+    <button class="time-btn" data-range="1m">Last Month</button>
+  </div>
 
   <!-- Chart -->
   <div class="chart-card">
@@ -302,6 +415,201 @@ footer strong {
 </footer>
 
 <script>
+let allData = [];
+let chart = null;
+
+function parseTimestamp(tsStr) {
+  // Handle both formats: "DD/MM/YYYY HH:MM:SS" and "YYYY-MM-DD HH:MM:SS"
+  let date;
+
+  if (tsStr.includes('/')) {
+    // DD/MM/YYYY HH:MM:SS format
+    const parts = tsStr.split(' ');
+    const dateParts = parts[0].split('/');
+    const timeParts = parts[1].split(':');
+    date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
+  } else {
+    // YYYY-MM-DD HH:MM:SS format
+    date = new Date(tsStr);
+  }
+
+  return date;
+}
+
+function calculateAnalytics(data) {
+  if (data.length === 0) return {};
+
+  const buys = data.map(d => d.buy);
+  const sells = data.map(d => d.sell);
+
+  const avgBuy = buys.reduce((a, b) => a + b, 0) / buys.length;
+  const avgSell = sells.reduce((a, b) => a + b, 0) / sells.length;
+  const spreads = data.map(d => d.buy - d.sell).map(Math.abs);
+  const maxSpread = Math.max(...spreads);
+
+  return {
+    avgBuy: avgBuy.toFixed(4),
+    avgSell: avgSell.toFixed(4),
+    maxSpread: maxSpread.toFixed(4),
+    count: data.length
+  };
+}
+
+function filterDataByRange(data, range) {
+  if (range === 'all') return data;
+
+  const now = new Date();
+  let cutoff;
+
+  switch(range) {
+    case '12m':
+      cutoff = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      break;
+    case '6m':
+      cutoff = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      break;
+    case '3m':
+      cutoff = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+      break;
+    case '1m':
+      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+      break;
+    default:
+      return data;
+  }
+
+  return data.filter(d => d.date >= cutoff);
+}
+
+function updateChart(filteredData) {
+  const labels = filteredData.map(d => {
+    return d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  });
+
+  const buyPrices = filteredData.map(d => d.buy);
+  const sellPrices = filteredData.map(d => d.sell);
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = buyPrices;
+    chart.data.datasets[1].data = sellPrices;
+    chart.update('none');
+  } else {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Buy Price',
+            data: buyPrices,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 2,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#10b981'
+          },
+          {
+            label: 'Sell Price',
+            data: sellPrices,
+            borderColor: '#0369a1',
+            backgroundColor: 'rgba(3, 105, 161, 0.05)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 2,
+            pointBackgroundColor: '#0369a1',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#0369a1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 14, weight: '600' },
+              color: '#0f172a',
+              padding: 16,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            padding: 12,
+            titleFont: { size: 13, weight: '600' },
+            bodyFont: { size: 12 },
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            displayColors: true,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(4) + ' BOB';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              color: '#64748b',
+              font: { size: 12 },
+              callback: function(value) {
+                return value.toFixed(2);
+              }
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.06)',
+              drawBorder: false
+            }
+          },
+          x: {
+            ticks: {
+              color: '#64748b',
+              font: { size: 11 },
+              maxRotation: 45,
+              minRotation: 0
+            },
+            grid: {
+              display: false,
+              drawBorder: false
+            }
+          }
+        }
+      }
+    });
+  }
+
+  document.getElementById('loadingMessage').style.display = 'none';
+  document.getElementById('priceChart').style.display = 'block';
+
+  // Update analytics
+  const analytics = calculateAnalytics(filteredData);
+  document.getElementById('avgBuy').textContent = analytics.avgBuy;
+  document.getElementById('avgSell').textContent = analytics.avgSell;
+  document.getElementById('maxSpread').textContent = analytics.maxSpread;
+  document.getElementById('dataCount').textContent = analytics.count.toLocaleString();
+}
+
 async function loadPriceData() {
   try {
     const response = await fetch('data/prices.csv');
@@ -320,144 +628,52 @@ async function loadPriceData() {
     const sellIdx = headers.indexOf('p2p_sell_bob');
 
     // Parse data rows
-    const data = [];
+    allData = [];
     for (let i = 1; i < rows.length; i++) {
       const values = rows[i].split(',');
 
-      // Skip rows with missing price data
       if (values[buyIdx] === '' || values[sellIdx] === '' || !values[buyIdx] || !values[sellIdx]) {
         continue;
       }
 
-      data.push({
+      const date = parseTimestamp(values[timestampIdx]);
+      if (isNaN(date.getTime())) continue;
+
+      allData.push({
         timestamp: values[timestampIdx],
+        date: date,
         buy: parseFloat(values[buyIdx]),
         sell: parseFloat(values[sellIdx])
       });
     }
 
-    if (data.length === 0) {
+    if (allData.length === 0) {
       document.getElementById('loadingMessage').textContent = 'No complete price data available';
       return;
     }
 
+    // Sort by date
+    allData.sort((a, b) => a.date - b.date);
+
     // Display latest prices
-    const latest = data[data.length - 1];
+    const latest = allData[allData.length - 1];
     document.getElementById('buyPrice').textContent = latest.buy.toFixed(2);
     document.getElementById('sellPrice').textContent = latest.sell.toFixed(2);
     document.getElementById('buyUpdated').textContent = `Last updated: ${latest.timestamp}`;
     document.getElementById('sellUpdated').textContent = `Last updated: ${latest.timestamp}`;
 
-    // Prepare chart data
-    const labels = data.map(d => {
-      // Parse timestamp and extract date part
-      const date = new Date(d.timestamp);
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    });
+    // Initial chart with all data
+    updateChart(allData);
 
-    const buyPrices = data.map(d => d.buy);
-    const sellPrices = data.map(d => d.sell);
-
-    // Hide loading message and show chart
-    document.getElementById('loadingMessage').style.display = 'none';
-    document.getElementById('priceChart').style.display = 'block';
-
-    // Create chart
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Buy Price',
-            data: buyPrices,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: '#10b981',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointHoverRadius: 5
-          },
-          {
-            label: 'Sell Price',
-            data: sellPrices,
-            borderColor: '#0369a1',
-            backgroundColor: 'rgba(3, 105, 161, 0.05)',
-            borderWidth: 2,
-            tension: 0.4,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: '#0369a1',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointHoverRadius: 5
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              font: { size: 14, weight: '600' },
-              color: '#0f172a',
-              padding: 16,
-              usePointStyle: true
-            }
-          },
-          tooltip: {
-            backgroundColor: '#0f172a',
-            padding: 12,
-            titleFont: { size: 14, weight: '600' },
-            bodyFont: { size: 13 },
-            borderColor: '#e2e8f0',
-            borderWidth: 1,
-            callbacks: {
-              label: function(context) {
-                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' BOB';
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: false,
-            title: {
-              display: true,
-              text: 'Price (BOB)'
-            },
-            ticks: {
-              color: '#64748b',
-              font: { size: 12 },
-              callback: function(value) {
-                return value.toFixed(2);
-              }
-            },
-            grid: {
-              color: 'rgba(0, 0, 0, 0.05)',
-              drawBorder: false
-            }
-          },
-          x: {
-            ticks: {
-              color: '#64748b',
-              font: { size: 12 }
-            },
-            grid: {
-              display: false,
-              drawBorder: false
-            }
-          }
-        }
-      }
+    // Setup time range buttons
+    document.querySelectorAll('.time-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const range = btn.dataset.range;
+        const filtered = filterDataByRange(allData, range);
+        updateChart(filtered);
+      });
     });
 
   } catch (error) {

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clear Data Report - USDT/BOB P2P Tracker</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@3.0.0/index.min.js"></script>
+
+<style>
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f0f4f8;
+  color: #1a2332;
+}
+
+/* ── Nav ── */
+nav {
+  background: #0f172a;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+.nav-brand {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  text-decoration: none;
+}
+
+.nav-brand span {
+  color: #38bdf8;
+}
+
+.nav-links a {
+  color: #94a3b8;
+  text-decoration: none;
+  margin-left: 28px;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: white;
+}
+
+.nav-links a.active {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  color: white;
+  padding: 90px 40px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.hero h1 span {
+  color: #38bdf8;
+}
+
+.hero p {
+  font-size: 18px;
+  color: #94a3b8;
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Main container ── */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 40px;
+}
+
+/* ── Section title ── */
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.section-line {
+  width: 48px;
+  height: 4px;
+  background: #38bdf8;
+  border-radius: 2px;
+  margin-bottom: 40px;
+}
+
+/* ── Price cards ── */
+.price-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.price-card {
+  background: white;
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.price-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.price-card.buy {
+  border-top: 4px solid #10b981;
+}
+
+.price-card.sell {
+  border-top: 4px solid #38bdf8;
+}
+
+.price-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.price-value {
+  font-size: 48px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.price-card.buy .price-value {
+  color: #10b981;
+}
+
+.price-card.sell .price-value {
+  color: #0369a1;
+}
+
+.price-currency {
+  font-size: 18px;
+  color: #94a3b8;
+  margin-left: 8px;
+}
+
+.price-updated {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ── Time range controls ── */
+.controls-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.time-btn {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.time-btn:hover {
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.time-btn.active {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: white;
+}
+
+/* ── Chart card ── */
+.chart-card {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  margin-bottom: 48px;
+}
+
+.chart-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 24px;
+}
+
+.chart-container {
+  position: relative;
+  height: 400px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+}
+
+/* ── Footer ── */
+footer {
+  background: #0f172a;
+  color: #64748b;
+  text-align: center;
+  padding: 36px 40px;
+  font-size: 14px;
+}
+
+footer strong {
+  color: #38bdf8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 60px 20px; }
+  .hero h1 { font-size: 32px; }
+  .container { padding: 40px 20px; }
+  .price-cards { grid-template-columns: 1fr; }
+  .price-value { font-size: 36px; }
+  .chart-container { height: 300px; }
+  .controls-bar { flex-direction: column; align-items: stretch; }
+  .time-btn { width: 100%; }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Nav -->
+<nav>
+  <a class="nav-brand" href="index.html">Clear<span>Data</span>Report</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="crypto.html" class="active">Crypto KPIs</a>
+    <a href="powerbi.html">Power BI</a>
+    <a href="usmap.html">US Income Map</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>USDT / BOB <span>P2P Tracker</span></h1>
+  <p>Real-time 4th-level pricing from Binance P2P market with historical trends — updated every 4 hours.</p>
+</div>
+
+<!-- Content -->
+<div class="container">
+
+  <div class="section-title">Today's Prices</div>
+  <div class="section-line"></div>
+
+  <!-- Price Cards -->
+  <div class="price-cards">
+    <div class="price-card buy">
+      <div class="price-label">Buy Price</div>
+      <div>
+        <span class="price-value" id="buyPrice">—</span>
+        <span class="price-currency">BOB</span>
+      </div>
+      <div class="price-updated" id="buyUpdated"></div>
+    </div>
+
+    <div class="price-card sell">
+      <div class="price-label">Sell Price</div>
+      <div>
+        <span class="price-value" id="sellPrice">—</span>
+        <span class="price-currency">BOB</span>
+      </div>
+      <div class="price-updated" id="sellUpdated"></div>
+    </div>
+  </div>
+
+  <div class="section-title">Historical Trend</div>
+  <div class="section-line"></div>
+
+  <!-- Time Range Controls -->
+  <div class="controls-bar">
+    <button class="time-btn active" data-range="12m">Last 12 Months</button>
+    <button class="time-btn" data-range="6m">Last 6 Months</button>
+    <button class="time-btn" data-range="1m">Last Month</button>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-card">
+    <div class="chart-title">Price History</div>
+    <div class="chart-container">
+      <div class="loading" id="loadingMessage">Loading data...</div>
+      <canvas id="priceChart" style="display: none;"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <strong>Clear Data Report</strong> · Data Analytics Portfolio
+</footer>
+
+<script>
+let allData = [];
+let chart = null;
+
+function parseTimestamp(tsStr) {
+  // Handle both formats: "DD/MM/YYYY HH:MM:SS" and "YYYY-MM-DD HH:MM:SS"
+  let date;
+
+  if (tsStr.includes('/')) {
+    // DD/MM/YYYY HH:MM:SS format
+    const parts = tsStr.split(' ');
+    const dateParts = parts[0].split('/');
+    const timeParts = parts[1].split(':');
+    date = new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
+  } else {
+    // YYYY-MM-DD HH:MM:SS format
+    date = new Date(tsStr);
+  }
+
+  return date;
+}
+
+function aggregateDataByRange(data, range) {
+  const now = new Date();
+  let cutoff;
+
+  // First filter by date range
+  switch(range) {
+    case '12m':
+      cutoff = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      break;
+    case '6m':
+      cutoff = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+      break;
+    case '1m':
+      cutoff = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+      break;
+    default:
+      cutoff = new Date(0);
+  }
+
+  const filtered = data.filter(d => d.date >= cutoff);
+
+  // Then aggregate
+  if (range === '12m') {
+    // First value of each month
+    const aggregated = {};
+    filtered.forEach(d => {
+      const monthKey = `${d.date.getFullYear()}-${String(d.date.getMonth() + 1).padStart(2, '0')}`;
+      if (!aggregated[monthKey]) {
+        aggregated[monthKey] = d;
+      }
+    });
+    return Object.values(aggregated);
+  }
+
+  if (range === '6m') {
+    // First value of each week
+    const aggregated = {};
+    filtered.forEach(d => {
+      const monday = new Date(d.date);
+      const day = monday.getDay();
+      const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+      monday.setDate(diff);
+      const weekKey = monday.toISOString().split('T')[0];
+      if (!aggregated[weekKey]) {
+        aggregated[weekKey] = d;
+      }
+    });
+    return Object.values(aggregated);
+  }
+
+  if (range === '1m') {
+    // First value of each day
+    const aggregated = {};
+    filtered.forEach(d => {
+      const dayKey = d.date.toISOString().split('T')[0];
+      if (!aggregated[dayKey]) {
+        aggregated[dayKey] = d;
+      }
+    });
+    return Object.values(aggregated);
+  }
+
+  return filtered;
+}
+
+function updateChart(filteredData) {
+  const labels = filteredData.map(d => {
+    return d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+  });
+
+  const buyPrices = filteredData.map(d => d.buy);
+  const sellPrices = filteredData.map(d => d.sell);
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = buyPrices;
+    chart.data.datasets[1].data = sellPrices;
+    chart.update('none');
+  } else {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Buy Price',
+            data: buyPrices,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 2,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#10b981'
+          },
+          {
+            label: 'Sell Price',
+            data: sellPrices,
+            borderColor: '#0369a1',
+            backgroundColor: 'rgba(3, 105, 161, 0.05)',
+            borderWidth: 2.5,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 2,
+            pointBackgroundColor: '#0369a1',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#0369a1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 14, weight: '600' },
+              color: '#0f172a',
+              padding: 16,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            padding: 12,
+            titleFont: { size: 13, weight: '600' },
+            bodyFont: { size: 12 },
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            displayColors: true,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' BOB';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              color: '#64748b',
+              font: { size: 12 },
+              callback: function(value) {
+                return value.toFixed(2);
+              }
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.06)',
+              drawBorder: false
+            }
+          },
+          x: {
+            ticks: {
+              color: '#64748b',
+              font: { size: 11 },
+              maxRotation: 45,
+              minRotation: 0
+            },
+            grid: {
+              display: false,
+              drawBorder: false
+            }
+          }
+        }
+      }
+    });
+  }
+
+  document.getElementById('loadingMessage').style.display = 'none';
+  document.getElementById('priceChart').style.display = 'block';
+}
+
+async function loadPriceData() {
+  try {
+    const response = await fetch('data/prices.csv');
+    const csvText = await response.text();
+    const rows = csvText.trim().split('\n');
+
+    if (rows.length < 2) {
+      document.getElementById('loadingMessage').textContent = 'No data available';
+      return;
+    }
+
+    // Parse CSV header
+    const headers = rows[0].split(',').map(h => h.trim());
+    const timestampIdx = headers.indexOf('timestamp');
+    const buyIdx = headers.indexOf('p2p_buy_bob');
+    const sellIdx = headers.indexOf('p2p_sell_bob');
+
+    // Parse data rows
+    allData = [];
+    for (let i = 1; i < rows.length; i++) {
+      if (!rows[i].trim()) continue;
+
+      const values = rows[i].split(',').map(v => v.trim());
+
+      if (!values[buyIdx] || !values[sellIdx]) {
+        continue;
+      }
+
+      const date = parseTimestamp(values[timestampIdx]);
+      if (isNaN(date.getTime())) continue;
+
+      const buy = parseFloat(values[buyIdx]);
+      const sell = parseFloat(values[sellIdx]);
+      if (isNaN(buy) || isNaN(sell)) continue;
+
+      allData.push({
+        timestamp: values[timestampIdx],
+        date: date,
+        buy: buy,
+        sell: sell
+      });
+    }
+
+    if (allData.length === 0) {
+      document.getElementById('loadingMessage').textContent = 'No complete price data available';
+      return;
+    }
+
+    // Sort by date
+    allData.sort((a, b) => a.date - b.date);
+
+    // Display latest prices
+    const latest = allData[allData.length - 1];
+    document.getElementById('buyPrice').textContent = latest.buy.toFixed(2);
+    document.getElementById('sellPrice').textContent = latest.sell.toFixed(2);
+    document.getElementById('buyUpdated').textContent = `Last updated: ${latest.timestamp}`;
+    document.getElementById('sellUpdated').textContent = `Last updated: ${latest.timestamp}`;
+
+    // Initial chart with aggregated 12-month data
+    const aggregated12m = aggregateDataByRange(allData, '12m');
+    updateChart(aggregated12m);
+
+    // Setup time range buttons
+    document.querySelectorAll('.time-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const range = btn.dataset.range;
+        const aggregated = aggregateDataByRange(allData, range);
+        updateChart(aggregated);
+      });
+    });
+
+  } catch (error) {
+    console.error('Error loading price data:', error);
+    document.getElementById('loadingMessage').textContent = 'Error loading data. Please refresh the page.';
+  }
+}
+
+// Load data when page loads
+window.addEventListener('load', loadPriceData);
+</script>
+
+</body>
+</html>

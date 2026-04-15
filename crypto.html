@@ -332,9 +332,9 @@ footer strong {
 
   <!-- Time Range Controls -->
   <div class="controls-bar">
-    <button class="time-btn active" data-range="12m">Last 12 Months</button>
+    <button class="time-btn" data-range="12m">Last 12 Months</button>
     <button class="time-btn" data-range="6m">Last 6 Months</button>
-    <button class="time-btn" data-range="1m">Last Month</button>
+    <button class="time-btn active" data-range="1m">Last Month</button>
   </div>
 
   <!-- Chart -->
@@ -356,6 +356,7 @@ footer strong {
 <script>
 let allData = [];
 let chart = null;
+let currentRange = '1m';
 
 function parseTimestamp(tsStr) {
   // Handle both formats: "DD/MM/YYYY HH:MM:SS" and "YYYY-MM-DD HH:MM:SS"
@@ -440,7 +441,15 @@ function aggregateDataByRange(data, range) {
   return filtered;
 }
 
-function updateChart(filteredData) {
+// Peak annotations shown only in 12m view (month label → note)
+const PEAK_NOTES = {
+  'Aug 2024': 'BOB shortage begins — demand for USDT surges.',
+  'May 2025': 'Bolivia FX crisis peak — official dollar reserves critically low.',
+  'Jun 2025': 'Crisis continues; black-market premium at record high.'
+};
+
+function updateChart(filteredData, range) {
+  currentRange = range;
   const labels = filteredData.map(d => {
     return d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
   });
@@ -522,6 +531,14 @@ function updateChart(filteredData) {
             callbacks: {
               label: function(context) {
                 return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' BOB';
+              },
+              afterBody: function(contexts) {
+                if (currentRange !== '12m') return [];
+                const label = contexts[0].label; // e.g. "Aug 1, 24"
+                // Normalize to "Mon YYYY" for lookup
+                const parts = label.split(' ');
+                const key = parts[0] + ' 20' + parts[2];
+                return PEAK_NOTES[key] ? ['', '⚡ ' + PEAK_NOTES[key]] : [];
               }
             }
           }
@@ -620,9 +637,9 @@ async function loadPriceData() {
     document.getElementById('buyUpdated').textContent = `Last updated: ${latest.timestamp}`;
     document.getElementById('sellUpdated').textContent = `Last updated: ${latest.timestamp}`;
 
-    // Initial chart with aggregated 12-month data
-    const aggregated12m = aggregateDataByRange(allData, '12m');
-    updateChart(aggregated12m);
+    // Initial chart with last month data
+    const aggregated1m = aggregateDataByRange(allData, '1m');
+    updateChart(aggregated1m, '1m');
 
     // Setup time range buttons
     document.querySelectorAll('.time-btn').forEach(btn => {
@@ -631,7 +648,7 @@ async function loadPriceData() {
         btn.classList.add('active');
         const range = btn.dataset.range;
         const aggregated = aggregateDataByRange(allData, range);
-        updateChart(aggregated);
+        updateChart(aggregated, range);
       });
     });
 

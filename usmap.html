@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US Income Map - Clear Data Report</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a2332; }
+nav {
+  background: #0f172a; padding: 0 40px; display: flex;
+  align-items: center; justify-content: space-between;
+  height: 64px; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.nav-brand { color: #fff; font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+.nav-brand span { color: #38bdf8; }
+.nav-links a { color: #94a3b8; text-decoration: none; margin-left: 28px; font-size: .95rem; }
+.nav-links a:hover { color: #fff; }
+.nav-links a.active { color: #38bdf8; font-weight: 600; }
+.hero { padding: 40px 40px 16px; }
+.hero h1 { font-size: 1.6rem; font-weight: 700; }
+.hero p { color: #475569; margin-top: 6px; font-size: .95rem; }
+#map { width: 100%; height: 580px; }
+.card { background: #fff; border-radius: 12px; margin: 0 40px 40px; box-shadow: 0 1px 6px rgba(0,0,0,.08); overflow: hidden; }
+footer { text-align: center; padding: 24px; color: #94a3b8; font-size: .82rem; }
+@media(max-width:600px){ nav { padding: 0 16px; } .hero, .card { margin: 0 12px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">Clear<span>Data</span>Report</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="powerbi.html">Power BI</a>
+    <a href="usmap.html" class="active">US Income Map</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>US Median Household Income by State</h1>
+  <p>Hover over a state to see median income and the most common occupation. Data: ACS 2022.</p>
+</div>
+
+<div class="card">
+  <div id="map"></div>
+</div>
+
+<footer>Clear Data Report &copy; 2025 &mdash; Data sourced from US Census Bureau ACS 2022</footer>
+
+<script>
+// ACS 2022 median household income + most common occupation by state
+const states = [
+  ['AL','Alabama',52035,'Retail Salesperson'],['AK','Alaska',77640,'Driver/Sales Worker'],
+  ['AZ','Arizona',65913,'Retail Salesperson'],['AR','Arkansas',50540,'Driver/Sales Worker'],
+  ['CA','California',84097,'Software Developer'],['CO','Colorado',82878,'Software Developer'],
+  ['CT','Connecticut',83771,'Registered Nurse'],['DE','Delaware',72724,'Retail Salesperson'],
+  ['FL','Florida',59227,'Retail Salesperson'],['GA','Georgia',65030,'Retail Salesperson'],
+  ['HI','Hawaii',83102,'Retail Salesperson'],['ID','Idaho',62992,'Retail Salesperson'],
+  ['IL','Illinois',72205,'Retail Salesperson'],['IN','Indiana',60054,'Driver/Sales Worker'],
+  ['IA','Iowa',64498,'Driver/Sales Worker'],['KS','Kansas',63001,'Retail Salesperson'],
+  ['KY','Kentucky',55454,'Driver/Sales Worker'],['LA','Louisiana',54216,'Retail Salesperson'],
+  ['ME','Maine',64767,'Retail Salesperson'],['MD','Maryland',90203,'Software Developer'],
+  ['MA','Massachusetts',89026,'Software Developer'],['MI','Michigan',63202,'Retail Salesperson'],
+  ['MN','Minnesota',80441,'Retail Salesperson'],['MS','Mississippi',48716,'Retail Salesperson'],
+  ['MO','Missouri',59196,'Retail Salesperson'],['MT','Montana',60560,'Retail Salesperson'],
+  ['NE','Nebraska',66572,'Retail Salesperson'],['NV','Nevada',65030,'Retail Salesperson'],
+  ['NH','New Hampshire',84490,'Software Developer'],['NJ','New Jersey',89703,'Software Developer'],
+  ['NM','New Mexico',51243,'Retail Salesperson'],['NY','New York',75157,'Retail Salesperson'],
+  ['NC','North Carolina',60516,'Retail Salesperson'],['ND','North Dakota',67865,'Driver/Sales Worker'],
+  ['OH','Ohio',61938,'Retail Salesperson'],['OK','Oklahoma',56071,'Retail Salesperson'],
+  ['OR','Oregon',72888,'Software Developer'],['PA','Pennsylvania',67587,'Retail Salesperson'],
+  ['RI','Rhode Island',74114,'Retail Salesperson'],['SC','South Carolina',58234,'Retail Salesperson'],
+  ['SD','South Dakota',62985,'Retail Salesperson'],['TN','Tennessee',58516,'Retail Salesperson'],
+  ['TX','Texas',67321,'Retail Salesperson'],['UT','Utah',79133,'Software Developer'],
+  ['VT','Vermont',67674,'Retail Salesperson'],['VA','Virginia',80963,'Software Developer'],
+  ['WA','Washington',87648,'Software Developer'],['WV','West Virginia',48037,'Retail Salesperson'],
+  ['WI','Wisconsin',67080,'Retail Salesperson'],['WY','Wyoming',64049,'Driver/Sales Worker']
+];
+
+const abbr  = states.map(d => d[0]);
+const names = states.map(d => d[1]);
+const income= states.map(d => d[2]);
+const jobs  = states.map(d => d[3]);
+const text  = states.map(d =>
+  `<b>${d[1]}</b><br>Median Income: $${d[2].toLocaleString()}<br>Top Job: ${d[3]}`
+);
+
+Plotly.newPlot('map', [{
+  type: 'choropleth',
+  locationmode: 'USA-states',
+  locations: abbr,
+  z: income,
+  text: text,
+  hovertemplate: '%{text}<extra></extra>',
+  colorscale: [
+    [0,'#1e3a5f'],[0.25,'#2563eb'],[0.5,'#38bdf8'],
+    [0.75,'#86efac'],[1,'#22c55e']
+  ],
+  colorbar: {
+    title: { text: 'Median Income ($)', font: { size: 13 } },
+    tickprefix: '$', thickness: 18, len: 0.75
+  },
+  zmin: 47000, zmax: 92000
+}], {
+  geo: {
+    scope: 'usa',
+    showlakes: true, lakecolor: '#e0f2fe',
+    bgcolor: '#f0f4f8',
+    landcolor: '#e2e8f0'
+  },
+  margin: { t: 10, b: 10, l: 0, r: 0 },
+  paper_bgcolor: '#fff',
+  font: { family: 'Segoe UI, Arial, sans-serif' }
+}, { responsive: true, displayModeBar: false });
+</script>
+</body>
+</html>

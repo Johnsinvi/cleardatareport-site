@@ -129,11 +129,42 @@ nav {
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: 14px;
+  align-items: center;
   justify-content: center;
   padding: 12px 16px 18px;
   border-top: 1px solid rgba(56,189,248,0.1);
   background: rgba(5,7,13,0.6);
+}
+#zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 160px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(56,189,248,0.25);
+  outline: none;
+  opacity: 0.55;
+  transition: opacity .2s;
+  cursor: pointer;
+}
+#zoom-slider:hover { opacity: 0.9; }
+#zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 6px rgba(56,189,248,0.6);
+  cursor: pointer;
+}
+#zoom-slider::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: none;
+  box-shadow: 0 0 6px rgba(56,189,248,0.6);
+  cursor: pointer;
 }
 .btn {
   background: rgba(56,189,248,0.08);
@@ -310,9 +341,8 @@ footer strong { color: #38bdf8; }
     </div>
     <div id="globe"></div>
     <div class="controls">
-      <button class="btn active" id="btn-spin">Auto-rotate</button>
-      <button class="btn" id="btn-stop">Pause</button>
-      <button class="btn" id="btn-reset">Reset view</button>
+      <input type="range" id="zoom-slider" min="0.5" max="4" step="0.05" value="1" title="Zoom">
+      <button class="btn active" id="btn-reset">Reset view</button>
     </div>
   </div>
 
@@ -520,51 +550,28 @@ const layout = {
 const config = {
   responsive: true,
   displayModeBar: false,
-  scrollZoom: false
+  scrollZoom: true
 };
 
 Plotly.newPlot('globe', data, layout, config);
 
-// ── Auto-rotate animation ──
-let currentLon = 0;
-let rotating = true;
-let lastHoverAt = 0;
+// ── Reset button ──
+const btnReset   = document.getElementById('btn-reset');
+const zoomSlider = document.getElementById('zoom-slider');
 
-const globeEl = document.getElementById('globe');
-globeEl.on('plotly_hover', () => { lastHoverAt = Date.now(); });
-
-function step() {
-  if (rotating && Date.now() - lastHoverAt > 400) {
-    currentLon = (currentLon + 0.35) % 360;
-    Plotly.relayout('globe', {
-      'geo.projection.rotation.lon': currentLon
-    });
-  }
-  requestAnimationFrame(step);
-}
-requestAnimationFrame(step);
-
-// Buttons
-const btnSpin  = document.getElementById('btn-spin');
-const btnStop  = document.getElementById('btn-stop');
-const btnReset = document.getElementById('btn-reset');
-
-btnSpin.addEventListener('click', () => {
-  rotating = true;
-  btnSpin.classList.add('active');
-  btnStop.classList.remove('active');
-});
-btnStop.addEventListener('click', () => {
-  rotating = false;
-  btnStop.classList.add('active');
-  btnSpin.classList.remove('active');
-});
 btnReset.addEventListener('click', () => {
-  currentLon = 0;
+  zoomSlider.value = 1;
   Plotly.relayout('globe', {
     'geo.projection.rotation.lon': 0,
     'geo.projection.rotation.lat': 15,
     'geo.projection.scale': 1
+  });
+});
+
+// ── Zoom slider ──
+zoomSlider.addEventListener('input', () => {
+  Plotly.relayout('globe', {
+    'geo.projection.scale': parseFloat(zoomSlider.value)
   });
 });
 </script>

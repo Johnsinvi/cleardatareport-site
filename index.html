@@ -54,7 +54,7 @@ nav {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 28px;
 }
 
@@ -86,9 +86,38 @@ nav {
   position: relative;
   overflow: hidden;
 }
-.thumb-crypto  { background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%); }
-.thumb-powerbi { background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%); }
-.thumb-usmap   { background: linear-gradient(135deg, #164e63 0%, #065f46 100%); }
+.thumb-crypto    { background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%); }
+.thumb-powerbi   { background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%); }
+.thumb-usmap     { background: linear-gradient(135deg, #164e63 0%, #065f46 100%); }
+.thumb-inflation { background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #050712 80%); position: relative; }
+
+/* rotating globe thumb */
+.mini-globe {
+  width: 110px; height: 110px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), transparent 45%),
+    conic-gradient(from 0deg,
+      #0369a1 0%, #22d3ee 15%, #a7f3d0 30%,
+      #fde68a 50%, #fb923c 70%, #ef4444 85%, #c026d3 100%);
+  box-shadow:
+    0 0 30px rgba(56,189,248,0.45),
+    inset -12px -12px 30px rgba(0,0,0,0.55),
+    inset 6px 6px 20px rgba(255,255,255,0.08);
+  animation: spin 16s linear infinite;
+  position: relative;
+}
+.mini-globe::after {
+  content: '';
+  position: absolute; inset: -18px;
+  border-radius: 50%;
+  border: 1px dashed rgba(56,189,248,0.25);
+  animation: spin-rev 32s linear infinite;
+}
+@keyframes spin     { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes spin-rev { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+.tag-globe { background: #1e1b4b; color: #c4b5fd; }
 
 /* mock chart inside crypto thumb */
 .mini-bars {
@@ -220,7 +249,7 @@ footer strong { color: #38bdf8; }
 <div class="container">
   <div class="section-label">Projects</div>
   <div class="section-title">Explore the dashboards</div>
-  <div class="section-sub">Three independent analyses, each using a different tool and dataset.</div>
+  <div class="section-sub">Four independent analyses, each using a different tool and dataset.</div>
 
   <div class="cards">
 
@@ -279,6 +308,20 @@ footer strong { color: #38bdf8; }
         <div class="card-title">US Income by State</div>
         <div class="card-desc">Choropleth map of median household income per state. Hover to reveal the most common occupation — powered by ACS 2022 Census data.</div>
         <div class="card-meta"><strong>Built with:</strong> Plotly.js, US Census ACS 2022</div>
+        <span class="card-cta">View dashboard</span>
+      </div>
+    </a>
+
+    <!-- Card 4: Inflation Globe -->
+    <a class="card" href="inflation.html">
+      <div class="thumb thumb-inflation">
+        <div class="mini-globe"></div>
+      </div>
+      <div class="card-body">
+        <span class="card-tag tag-globe">HTML · Plotly Globe</span>
+        <div class="card-title">Global Inflation Globe</div>
+        <div class="card-desc">A rotating, dark-themed globe where every country glows by its latest official inflation rate — from cool blues to hyperinflation magenta.</div>
+        <div class="card-meta"><strong>Built with:</strong> Plotly orthographic, IMF &amp; national CPI data</div>
         <span class="card-cta">View dashboard</span>
       </div>
     </a>

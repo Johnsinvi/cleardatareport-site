@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Inflation Globe - Clear Data Report</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #05070d;
+  color: #e2e8f0;
+  min-height: 100%;
+}
+
+/* Starfield backdrop */
+body {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(56,189,248,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(244,63,94,0.06) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, #0b1220 0%, #05070d 70%);
+  background-attachment: fixed;
+}
+
+/* ── Nav ── */
+nav {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(56,189,248,0.12);
+}
+.nav-brand { color: #fff; font-size: 1.25rem; font-weight: 700; text-decoration: none; letter-spacing: -0.3px; }
+.nav-brand span { color: #38bdf8; }
+.nav-links a { color: #94a3b8; text-decoration: none; margin-left: 28px; font-size: 14px; transition: color .2s; }
+.nav-links a:hover { color: #fff; }
+.nav-links a.active { color: #38bdf8; font-weight: 600; }
+.nav-li { display: inline-flex; align-items: center; gap: 6px; color: #94a3b8; text-decoration: none; margin-left: 28px; font-size: 14px; transition: color .2s; }
+.nav-li:hover { color: #38bdf8; }
+
+/* ── Hero ── */
+.hero {
+  padding: 56px 40px 24px;
+  text-align: center;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.hero .eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #38bdf8;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+  background: linear-gradient(90deg, #e0f2fe 0%, #38bdf8 50%, #f472b6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero p { font-size: 16px; color: #94a3b8; line-height: 1.7; max-width: 640px; margin: 0 auto; }
+
+/* ── Layout ── */
+.stage {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 40px 40px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+  align-items: start;
+}
+
+/* Globe card */
+.globe-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(15,23,42,0.6) 0%, rgba(5,7,13,0.85) 100%);
+  border: 1px solid rgba(56,189,248,0.15);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(56,189,248,0.05),
+    0 20px 60px rgba(0,0,0,0.6),
+    inset 0 0 80px rgba(56,189,248,0.03);
+}
+#globe {
+  width: 100%;
+  height: 640px;
+}
+.globe-overlay {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 5;
+  pointer-events: none;
+}
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: 0 0 12px #22d3ee;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+.overlay-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #7dd3fc;
+  text-transform: uppercase;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 12px 16px 18px;
+  border-top: 1px solid rgba(56,189,248,0.1);
+  background: rgba(5,7,13,0.6);
+}
+.btn {
+  background: rgba(56,189,248,0.08);
+  border: 1px solid rgba(56,189,248,0.25);
+  color: #7dd3fc;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn:hover { background: rgba(56,189,248,0.18); color: #fff; border-color: #38bdf8; }
+.btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+
+/* Side panel */
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.panel {
+  background: linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(15,23,42,0.4) 100%);
+  border: 1px solid rgba(148,163,184,0.12);
+  border-radius: 16px;
+  padding: 20px;
+}
+.panel h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel h3::before {
+  content: '';
+  width: 4px; height: 14px;
+  background: linear-gradient(180deg, #38bdf8, #f472b6);
+  border-radius: 2px;
+}
+
+/* Leaderboard */
+.rank-list { display: flex; flex-direction: column; gap: 8px; }
+.rank-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background .2s;
+  cursor: default;
+}
+.rank-row:hover { background: rgba(56,189,248,0.06); }
+.rank-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+.rank-country {
+  font-size: 13px;
+  color: #e2e8f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rank-value {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* Legend */
+.legend-bar {
+  height: 14px;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    #0369a1 0%,
+    #22d3ee 18%,
+    #a7f3d0 35%,
+    #fde68a 55%,
+    #fb923c 75%,
+    #ef4444 90%,
+    #c026d3 100%);
+  box-shadow: 0 0 16px rgba(56,189,248,0.2);
+}
+.legend-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+.kpi {
+  background: rgba(5,7,13,0.6);
+  border: 1px solid rgba(148,163,184,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.kpi-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+.kpi-value { font-size: 18px; font-weight: 700; color: #e2e8f0; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.kpi-value.hot { color: #f472b6; }
+.kpi-value.cool { color: #38bdf8; }
+
+footer {
+  text-align: center;
+  padding: 28px 20px 40px;
+  color: #475569;
+  font-size: 12px;
+  border-top: 1px solid rgba(148,163,184,0.06);
+  margin-top: 40px;
+}
+footer strong { color: #38bdf8; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stage { grid-template-columns: 1fr; }
+  #globe { height: 520px; }
+}
+@media (max-width: 600px) {
+  nav { padding: 0 16px; }
+  .nav-links { display: none; }
+  .hero { padding: 40px 20px 16px; }
+  .hero h1 { font-size: 30px; }
+  .stage { padding: 16px; }
+  #globe { height: 420px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">Clear<span>Data</span>Report</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a class="nav-li" href="https://www.linkedin.com/in/john-pereyra-483a23109" target="_blank" rel="noopener noreferrer">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452H17.21v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.984V9h3.102v1.561h.046c.432-.818 1.487-1.681 3.061-1.681 3.274 0 3.878 2.155 3.878 4.957v6.615zM5.337 7.433a1.8 1.8 0 1 1 0-3.601 1.8 1.8 0 0 1 0 3.601zm1.554 13.019H3.783V9h3.108v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.226.792 24 1.771 24h20.451C23.2 24 24 23.226 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>
+      LinkedIn
+    </a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Macro · Global</div>
+  <h1>Global Inflation, Lit Up</h1>
+  <p>A rotating view of the world with every country colored by its latest official inflation rate. Cool blues for low, hot magentas for hyperinflation. Hover a country for detail, drag to explore.</p>
+</div>
+
+<div class="stage">
+
+  <!-- Globe -->
+  <div class="globe-card">
+    <div class="globe-overlay">
+      <div class="live-dot"></div>
+      <div class="overlay-label">Rotating · CPI y/y</div>
+    </div>
+    <div id="globe"></div>
+    <div class="controls">
+      <button class="btn active" id="btn-spin">Auto-rotate</button>
+      <button class="btn" id="btn-stop">Pause</button>
+      <button class="btn" id="btn-reset">Reset view</button>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="side">
+
+    <div class="panel">
+      <h3>Color scale</h3>
+      <div class="legend-bar"></div>
+      <div class="legend-ticks">
+        <span>-5%</span><span>0%</span><span>5%</span><span>15%</span><span>40%</span><span>100%+</span>
+      </div>
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Countries</div><div class="kpi-value" id="kpi-count">–</div></div>
+        <div class="kpi"><div class="kpi-label">Median</div><div class="kpi-value" id="kpi-median">–</div></div>
+        <div class="kpi"><div class="kpi-label">Hottest</div><div class="kpi-value hot" id="kpi-max">–</div></div>
+        <div class="kpi"><div class="kpi-label">Coolest</div><div class="kpi-value cool" id="kpi-min">–</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Top 10 inflation</h3>
+      <div class="rank-list" id="rank-top"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Lowest 10</h3>
+      <div class="rank-list" id="rank-bottom"></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <strong>Clear Data Report</strong> &middot; Latest official inflation rate (CPI, y/y) per country &middot;
+  Sources: IMF WEO, Trading Economics, national statistics offices
+</footer>
+
+<script>
+// ── Data: latest known official inflation rate (%) per country (CPI y/y) ──
+const raw = [
+["Afghanistan",-6.4],["Albania",2.1],["Algeria",4.0],["Angola",27.5],["Argentina",117.8],
+["Armenia",0.5],["Australia",3.4],["Austria",3.2],["Azerbaijan",4.9],["Bahamas",1.1],
+["Bahrain",0.9],["Bangladesh",9.9],["Belarus",6.0],["Belgium",3.1],["Belize",1.7],
+["Benin",1.1],["Bhutan",2.7],["Bolivia",9.7],["Bosnia and Herzegovina",1.5],["Botswana",2.8],
+["Brazil",4.8],["Brunei",-0.4],["Bulgaria",2.4],["Burkina Faso",4.2],["Burundi",20.0],
+["Cambodia",2.5],["Cameroon",4.1],["Canada",2.3],["Cape Verde",1.3],["Central African Republic",3.5],
+["Chad",5.0],["Chile",4.5],["China",0.1],["Colombia",5.2],["Comoros",1.5],
+["Costa Rica",0.8],["Croatia",3.3],["Cuba",31.0],["Cyprus",2.2],["Czech Republic",2.7],
+["Democratic Republic of the Congo",18.0],["Denmark",1.6],["Djibouti",1.8],["Dominican Republic",3.3],
+["Ecuador",1.2],["Egypt",24.1],["El Salvador",0.3],["Equatorial Guinea",2.3],["Eritrea",5.5],
+["Estonia",4.6],["Eswatini",3.7],["Ethiopia",17.2],["Fiji",3.7],["Finland",1.0],
+["France",1.3],["Gabon",1.1],["Gambia",10.2],["Georgia",1.1],["Germany",2.2],
+["Ghana",23.0],["Greece",2.4],["Guatemala",2.0],["Guinea",10.5],["Guinea-Bissau",3.6],
+["Guyana",3.0],["Haiti",26.4],["Honduras",4.0],["Hungary",4.1],["Iceland",3.9],
+["India",4.6],["Indonesia",1.6],["Iran",32.2],["Iraq",2.8],["Ireland",1.9],
+["Israel",3.4],["Italy",1.5],["Ivory Coast",2.9],["Jamaica",5.0],["Japan",3.7],
+["Jordan",2.0],["Kazakhstan",9.0],["Kenya",3.0],["Kuwait",2.5],["Kyrgyzstan",6.0],
+["Laos",15.0],["Latvia",3.6],["Lebanon",45.2],["Lesotho",3.8],["Liberia",8.5],
+["Libya",2.4],["Lithuania",3.2],["Luxembourg",1.9],["Madagascar",7.6],["Malawi",30.7],
+["Malaysia",1.8],["Maldives",2.5],["Mali",3.2],["Malta",1.8],["Mauritania",2.2],
+["Mauritius",3.5],["Mexico",3.8],["Moldova",7.8],["Mongolia",8.0],["Montenegro",3.8],
+["Morocco",1.3],["Mozambique",3.3],["Myanmar",26.5],["Namibia",3.5],["Nepal",4.0],
+["Netherlands",2.8],["New Zealand",2.2],["Nicaragua",3.5],["Niger",4.1],["Nigeria",23.2],
+["North Korea",5.0],["North Macedonia",3.0],["Norway",2.3],["Oman",1.0],["Pakistan",0.7],
+["Panama",-0.1],["Papua New Guinea",3.4],["Paraguay",3.8],["Peru",1.7],["Philippines",1.8],
+["Poland",4.9],["Portugal",2.1],["Qatar",1.1],["Republic of the Congo",3.5],["Romania",5.0],
+["Russia",10.3],["Rwanda",7.4],["Saudi Arabia",2.3],["Senegal",0.8],["Serbia",4.5],
+["Sierra Leone",9.4],["Singapore",0.7],["Slovakia",4.0],["Slovenia",2.2],["Solomon Islands",2.9],
+["Somalia",6.1],["South Africa",3.2],["South Korea",2.1],["South Sudan",107.0],["Spain",2.9],
+["Sri Lanka",3.0],["Sudan",145.0],["Suriname",11.9],["Sweden",0.5],["Switzerland",-0.1],
+["Syria",40.0],["Taiwan",1.8],["Tajikistan",3.5],["Tanzania",3.1],["Thailand",1.1],
+["Timor-Leste",0.8],["Togo",3.3],["Trinidad and Tobago",0.7],["Tunisia",6.0],["Turkey",38.1],
+["Turkmenistan",8.0],["Uganda",3.5],["Ukraine",13.2],["United Arab Emirates",2.0],
+["United Kingdom",2.8],["United States",2.8],["Uruguay",4.7],["Uzbekistan",10.3],
+["Vanuatu",2.2],["Venezuela",172.0],["Vietnam",3.3],["Yemen",23.0],["Zambia",15.0],
+["Zimbabwe",92.1]
+];
+
+const names = raw.map(d => d[0]);
+const vals  = raw.map(d => d[1]);
+const text  = raw.map(d =>
+  `<b>${d[0]}</b><br>Inflation: <b>${d[1].toFixed(1)}%</b>`
+);
+
+// KPI values
+const sorted = [...vals].sort((a,b) => a-b);
+const median = sorted[Math.floor(sorted.length/2)];
+document.getElementById('kpi-count').textContent = raw.length;
+document.getElementById('kpi-median').textContent = median.toFixed(1) + '%';
+document.getElementById('kpi-max').textContent = Math.max(...vals).toFixed(0) + '%';
+document.getElementById('kpi-min').textContent = Math.min(...vals).toFixed(1) + '%';
+
+// Leaderboards
+function colorForValue(v) {
+  // Match the scale used by the globe: roughly -5 → 0 → 5 → 15 → 40 → 100+
+  if (v < 0)   return '#0369a1';
+  if (v < 3)   return '#22d3ee';
+  if (v < 7)   return '#a7f3d0';
+  if (v < 15)  return '#fde68a';
+  if (v < 40)  return '#fb923c';
+  if (v < 100) return '#ef4444';
+  return '#c026d3';
+}
+function buildRank(containerId, arr) {
+  const el = document.getElementById(containerId);
+  arr.forEach((row, i) => {
+    const [country, val] = row;
+    const color = colorForValue(val);
+    el.insertAdjacentHTML('beforeend', `
+      <div class="rank-row">
+        <div class="rank-num">${i+1}</div>
+        <div class="rank-country">${country}</div>
+        <div class="rank-value" style="background:${color}22;color:${color};">${val.toFixed(1)}%</div>
+      </div>
+    `);
+  });
+}
+const byVal = [...raw].sort((a,b) => b[1] - a[1]);
+buildRank('rank-top', byVal.slice(0, 10));
+buildRank('rank-bottom', [...raw].sort((a,b) => a[1] - b[1]).slice(0, 10));
+
+// ── Custom non-linear color scale so hyperinflation stays legible ──
+// Use log-like mapping: values get transformed into 0..1 before being sent to the colorscale.
+function toNormalized(v) {
+  // Clamp
+  const minV = -6, maxV = 175;
+  // Piecewise anchors that match legend ticks
+  const anchors = [
+    [-6,  0.00],
+    [ 0,  0.14],
+    [ 3,  0.25],
+    [ 7,  0.38],
+    [15,  0.55],
+    [40,  0.75],
+    [100, 0.90],
+    [175, 1.00]
+  ];
+  if (v <= anchors[0][0]) return 0;
+  if (v >= anchors[anchors.length-1][0]) return 1;
+  for (let i=0;i<anchors.length-1;i++){
+    const [x1,y1] = anchors[i], [x2,y2] = anchors[i+1];
+    if (v >= x1 && v <= x2) {
+      return y1 + (v - x1) * (y2 - y1) / (x2 - x1);
+    }
+  }
+  return 0;
+}
+const zNorm = vals.map(toNormalized);
+
+const data = [{
+  type: 'choropleth',
+  locationmode: 'country names',
+  locations: names,
+  z: zNorm,
+  text: text,
+  hovertemplate: '%{text}<extra></extra>',
+  showscale: false,
+  zmin: 0, zmax: 1,
+  colorscale: [
+    [0.00, '#0369a1'],
+    [0.14, '#22d3ee'],
+    [0.25, '#a7f3d0'],
+    [0.38, '#fde68a'],
+    [0.55, '#fb923c'],
+    [0.75, '#ef4444'],
+    [0.90, '#c026d3'],
+    [1.00, '#f0abfc']
+  ],
+  marker: {
+    line: { color: 'rgba(226,232,240,0.25)', width: 0.4 }
+  }
+}];
+
+const layout = {
+  geo: {
+    projection: { type: 'orthographic', rotation: { lon: 0, lat: 15, roll: 0 } },
+    showocean: true,
+    oceancolor: '#081225',
+    showland: true,
+    landcolor: '#0f1e38',
+    showcountries: true,
+    countrycolor: 'rgba(148,163,184,0.15)',
+    showcoastlines: true,
+    coastlinecolor: 'rgba(56,189,248,0.35)',
+    coastlinewidth: 0.6,
+    showlakes: true,
+    lakecolor: '#05101f',
+    showframe: true,
+    framecolor: 'rgba(56,189,248,0.25)',
+    framewidth: 1,
+    bgcolor: 'rgba(0,0,0,0)'
+  },
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  margin: { t: 10, b: 10, l: 10, r: 10 },
+  font: { family: 'Segoe UI, Arial, sans-serif', color: '#e2e8f0' },
+  hoverlabel: {
+    bgcolor: '#0f172a',
+    bordercolor: '#38bdf8',
+    font: { color: '#e2e8f0', family: 'Segoe UI, Arial, sans-serif', size: 13 }
+  }
+};
+
+const config = {
+  responsive: true,
+  displayModeBar: false,
+  scrollZoom: false
+};
+
+Plotly.newPlot('globe', data, layout, config);
+
+// ── Auto-rotate animation ──
+let currentLon = 0;
+let rotating = true;
+let lastHoverAt = 0;
+
+const globeEl = document.getElementById('globe');
+globeEl.on('plotly_hover', () => { lastHoverAt = Date.now(); });
+
+function step() {
+  if (rotating && Date.now() - lastHoverAt > 400) {
+    currentLon = (currentLon + 0.35) % 360;
+    Plotly.relayout('globe', {
+      'geo.projection.rotation.lon': currentLon
+    });
+  }
+  requestAnimationFrame(step);
+}
+requestAnimationFrame(step);
+
+// Buttons
+const btnSpin  = document.getElementById('btn-spin');
+const btnStop  = document.getElementById('btn-stop');
+const btnReset = document.getElementById('btn-reset');
+
+btnSpin.addEventListener('click', () => {
+  rotating = true;
+  btnSpin.classList.add('active');
+  btnStop.classList.remove('active');
+});
+btnStop.addEventListener('click', () => {
+  rotating = false;
+  btnStop.classList.add('active');
+  btnSpin.classList.remove('active');
+});
+btnReset.addEventListener('click', () => {
+  currentLon = 0;
+  Plotly.relayout('globe', {
+    'geo.projection.rotation.lon': 0,
+    'geo.projection.rotation.lat': 15,
+    'geo.projection.scale': 1
+  });
+});
+</script>
+</body>
+</html>
